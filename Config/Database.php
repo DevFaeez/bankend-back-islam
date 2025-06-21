@@ -2,11 +2,11 @@
 namespace Config {
 class Database{
     static function getConnection(): \PDO{
-        $port = 3306;
-        $host = "localhost";
-        $username = "root";
+        $port = 1521;
+        $host = "localhost:1521/FREEPDB1";
+        $username = "system";
         $database = "bank_islam";
-        $password = "root";
+        $password = "123456";
         
         try {
             $connection = new \PDO("mysql:host=$host;port=$port;dbname=$database", $username, $password);
@@ -19,4 +19,7 @@ class Database{
         }
     }
 }
+ 
+
+
 

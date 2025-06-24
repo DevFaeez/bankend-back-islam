@@ -1,26 +1,25 @@
-<?php
+<?php 
 namespace Config {
 class Database{
-    static function getConnection(): \PDO{
-        $port = 1521;
-        $host = "localhost:1521/FREEPDB1";
-        $username = "system";
-        $database = "bank_islam";
-        $password = "123456";
-        
-        try {
-            $connection = new \PDO("mysql:host=$host;port=$port;dbname=$database", $username, $password);
-            $connection->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-            return $connection;
-        } catch (\PDOException $e) {
-            error_log("Database connection failed: " . $e->getMessage());
-            throw $e;
-        }
-        }
+static function getConnection() {
+    $user = "Sedun"; //oracle username
+    $pass = "Sedun"; //Oracle password
+    $host = "localhost:1521/FREEPDB1/"; //server name or ip address
 
+    $dbconn = oci_connect($user, $pass, $host);
+
+    if (!$dbconn) {
+        $e = oci_error();
+        trigger_error(htmlentities($e['message'], ENT_QUOTES), E_USER_ERROR);
+    } else {
+    }
+    return $dbconn;
+
+        }
     }
 }
  
+
 
 
 

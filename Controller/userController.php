@@ -1,10 +1,11 @@
 <?php
 
 require_once __DIR__ . '/../model/User.php';
+require_once __DIR__ . '/../model/Account.php';
 require_once __DIR__ . '/../repository/UserRepository.php';
 require_once __DIR__ . '/../config/Database.php';
 
-header("Access-Control-Allow-Origin: http://localhost:5173");
+header("Access-Control-Allow-Origin: http://localhost:1521");
 header("Access-Control-Allow-Headers: Content-Type");
 header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 
@@ -14,6 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 use Model\User;
+use Model\Account;
 use Repository\UserRepositoryImpl;
 use Config\Database;
 
@@ -28,13 +30,28 @@ switch ($action) {
             $data = json_decode(file_get_contents("php://input"), true);
 
             $user = new User(
-                null,
-                $data['username'] ?? '',
-                $data['email'] ?? '',
-                $data['password'] ?? ''
+
             );
 
-            $result = $userRepo->register($user);
+            $account = new Account(
+
+            );
+
+            $user -> setEmail($data['email']);
+            $user -> setNricNumber($data['nricNumber']);
+            $user -> setFullName($data['fullName']);
+            $user -> setPhoneNumber($data['phoneNumber']);
+            $user -> setStatus($data['status']);
+
+            // $account -> setUsername($data['username']);
+            $account -> setPassword(password: $data['password']);
+            $account -> setBalance(balance: $data['balance'] ?? 0);
+            $account -> setStatus(status: $data['status']);
+            $account -> setOpenedAt(openedAt: $data['openedAt']);
+            // $account -> setUserId(userId: $data['userId']);
+            $account -> setEmployeeId(employeeId: $data['employeeId']);
+
+            $result = $userRepo->register($user, $account);
             header('Content-Type: application/json');
             echo json_encode($result);
         }

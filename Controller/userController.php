@@ -49,6 +49,18 @@ switch ($action) {
         }
         break;
 
+    case 'find':
+    if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+
+        $result = $userRepo->find(100);
+        echo json_encode($result);
+    } else {
+        http_response_code(405);
+        echo json_encode(["result" => "fail", "message" => "Invalid request method"]);
+    }
+    break;
+
+
     default:
         header('Content-Type: application/json');
         echo json_encode(["result" => "fail", "message" => "Invalid action"]);

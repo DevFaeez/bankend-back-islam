@@ -6,7 +6,7 @@ class Database
     public static function getConnection()
     {
         $host = "localhost:1521/FREEPDB1";
-        $username = "hr";
+        $username = "hr+_";
         $password = "root";
 
         $conn = oci_connect($username, $password, $host, 'AL32UTF8');

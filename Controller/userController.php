@@ -29,27 +29,16 @@ switch ($action) {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data = json_decode(file_get_contents("php://input"), true);
 
-            $user = new User(
+            $user = new User();
 
-            );
-
-            $account = new Account(
-
-            );
+            $account = new Account();
 
             $user -> setEmail($data['email']);
             $user -> setNricNumber($data['nricNumber']);
             $user -> setFullName($data['fullName']);
-            $user -> setPhoneNumber($data['phoneNumber']);
-            $user -> setStatus($data['status']);
 
-            // $account -> setUsername($data['username']);
-            $account -> setPassword(password: $data['password']);
-            $account -> setBalance(balance: $data['balance'] ?? 0);
-            $account -> setStatus(status: $data['status']);
-            $account -> setOpenedAt(openedAt: $data['openedAt']);
-            // $account -> setUserId(userId: $data['userId']);
-            $account -> setEmployeeId(employeeId: $data['employeeId']);
+            $account -> setPassword($data['password']);
+            $account -> setUsername($data['username']);
 
             $result = $userRepo->register($user, $account);
             header('Content-Type: application/json');
@@ -58,9 +47,9 @@ switch ($action) {
         break;
 
     case 'login':
-        if ($_SERVER['REQUEST_METHOD'] === 'GET') {  
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {  
             $data = json_decode(file_get_contents("php://input"), true);
-            $result = $userRepo->login($data['email'] ?? '', $data['password'] ?? '');
+            $result = $userRepo->login($data['username'] ?? '', $data['password'] ?? '');
             header('Content-Type: application/json');
             echo json_encode($result);
         }

@@ -4,8 +4,8 @@ namespace Model;
 
 class Account {
     private ?int $accountId; 
-    // private string $username; 
     private string $accountNumber; 
+    private string $username; 
     private string $password;
     private int $balance;
     private string $status;
@@ -27,13 +27,13 @@ public function __construct() {
     public function setAccountId(int $accountId): void {
         $this->accountId = $accountId;
     }
-    // public function getUsername(): string {
-    //     return $this->username;
-    // }
+    public function getUsername(): string {
+        return $this->username;
+    }
 
-    // public function setUsername(string $username): void {
-    //     $this->username = $username;
-    // }
+    public function setUsername(string $username): void {
+        $this->username = $username;
+    }
     public function getAccountNumber(): string {
         return $this->accountNumber;
     }

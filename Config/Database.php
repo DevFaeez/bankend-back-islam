@@ -2,8 +2,8 @@
 namespace Config {
 class Database{
 static function getConnection() {
-    $user = "Sedun"; //oracle username
-    $pass = "Sedun"; //Oracle password
+    $user = "adminbankislam"; //oracle username
+    $pass = "root"; //Oracle password
     $host = "localhost:1521/FREEPDB1/"; //server name or ip address
 
     $dbconn = oci_connect($user, $pass, $host);
@@ -18,5 +18,4 @@ static function getConnection() {
         }
     }
 }
- 
 

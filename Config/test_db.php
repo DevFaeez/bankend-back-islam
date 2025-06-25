@@ -6,6 +6,6 @@ use Config\Database;
 try {
     $conn = Database::getConnection();
     echo "<br>Database connection test: ✅ SUCCESS";
-} catch (PDOException $e) {
+} catch (Exception $e) {
     echo "<br>Database connection test: ❌ FAILED - " . $e->getMessage();
 }

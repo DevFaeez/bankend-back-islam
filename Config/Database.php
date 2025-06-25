@@ -1,22 +1,22 @@
-<?php
-namespace Config;
+<?php 
+namespace Config {
+class Database{
+static function getConnection() {
+    $user = "Sedun"; //oracle username
+    $pass = "Sedun"; //Oracle password
+    $host = "localhost:1521/FREEPDB1/"; //server name or ip address
 
-class Database
-{
-    public static function getConnection()
-    {
-        $host = "localhost:1521/FREEPDB1";
-        $username = "hr+_";
-        $password = "root";
+    $dbconn = oci_connect($user, $pass, $host);
 
-        $conn = oci_connect($username, $password, $host, 'AL32UTF8');
+    if (!$dbconn) {
+        $e = oci_error();
+        trigger_error(htmlentities($e['message'], ENT_QUOTES), E_USER_ERROR);
+    } else {
+    }
+    return $dbconn;
 
-        if (!$conn) {
-            $e = oci_error();
-            die("❌ OCI8 Connection Failed: " . $e['message']);
         }
-
-        return $conn;
     }
 }
+ 
 

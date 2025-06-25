@@ -97,7 +97,7 @@ class UserRepositoryImpl implements UserRepository {
 
     public function login(string $email, string $password): array {
     try {
-        $sql = "SELECT u.userId, u.email, a.password
+        $sql = "SELECT a.accountid, u.userId, u.email, a.password
                 FROM USERS u
                 JOIN ACCOUNT a
                 ON u.userId = a.userId
@@ -115,7 +115,8 @@ class UserRepositoryImpl implements UserRepository {
                 "result" => "success",
                 "user" => [
                     "user_id" => $user['USERID'],
-                    "email" => $user['EMAIL']
+                    "email" => $user['EMAIL'],
+                    "accountId" => $user['ACCOUNTID']
                 ]
             ];
         } else {

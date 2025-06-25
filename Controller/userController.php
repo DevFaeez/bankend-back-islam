@@ -1,8 +1,10 @@
 <?php
 
+
 require_once __DIR__ . '/../model/User.php';
 require_once __DIR__ . '/../model/Account.php';
 require_once __DIR__ . '/../repository/UserRepository.php';
+require_once __DIR__ . '/../dashboard/UserDashboard.php';
 require_once __DIR__ . '/../config/Database.php';
 
 header("Access-Control-Allow-Origin: http://localhost:1521");
@@ -17,10 +19,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 use Model\User;
 use Model\Account;
 use Repository\UserRepositoryImpl;
+use Dashboard\UserDashboardimpl;
 use Config\Database;
 
 $connection = Database::getConnection();
 $userRepo = new UserRepositoryImpl($connection);
+$userDash = new UserDashboardImpl($connection);
 
 $action = $_GET['action'] ?? '';
 
@@ -65,6 +69,15 @@ switch ($action) {
             echo json_encode($result);
         }
         break;
+
+    case 'dashboard':
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {  
+            $data = json_decode(file_get_contents("php://input"), true);
+            $result = $userDash->dashboard($data['accountId'] ?? '');
+            header('Content-Type: application/json');
+            echo json_encode($result);
+        }
+        break; 
 
     default:
         header('Content-Type: application/json');

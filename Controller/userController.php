@@ -1,11 +1,12 @@
 <?php
 
+
 require_once __DIR__ . '/../model/User.php';
 require_once __DIR__ . '/../model/Account.php';
-require_once __DIR__ . '/../repository/UserRepository.php';
+require_once __DIR__ . '/../Repository/UserRepository.php';
 require_once __DIR__ . '/../config/Database.php';
 
-header("Access-Control-Allow-Origin: http://localhost:1521");
+header("Access-Control-Allow-Origin: http://localhost:5173");
 header("Access-Control-Allow-Headers: Content-Type");
 header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 
@@ -54,18 +55,6 @@ switch ($action) {
             echo json_encode($result);
         }
         break;
-
-    case 'find':
-    if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-
-        $result = $userRepo->find(100);
-        echo json_encode($result);
-    } else {
-        http_response_code(405);
-        echo json_encode(["result" => "fail", "message" => "Invalid request method"]);
-    }
-    break;
-
 
     default:
         header('Content-Type: application/json');

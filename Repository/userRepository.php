@@ -79,7 +79,7 @@ public function register(User $user, Account $account) {
             oci_rollback($this->connection);
             $e = oci_error($stmtAcc);
             return ["result" => "fail", "message" => "Insert ACCOUNT failed: " . $e['message']];
-        }
+        }   
 
         oci_commit($this->connection);
 
@@ -99,8 +99,6 @@ public function register(User $user, Account $account) {
     }
 }
 
-
-
     public function login(string $username, string $password): array {
     try {
         $sql = "SELECT a.accountId, a.password 
@@ -118,7 +116,7 @@ public function register(User $user, Account $account) {
         if ($user && password_verify($password, $user['PASSWORD'])) {
             return [
                 "result" => "success",
-                "user" => [
+                "data" => [
                     "accountId" => $user['ACCOUNTID'],
                 ]
             ];

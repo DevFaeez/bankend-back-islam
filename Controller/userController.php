@@ -1,6 +1,5 @@
 <?php
 
-
 require_once __DIR__ . '/../model/User.php';
 require_once __DIR__ . '/../model/Account.php';
 require_once __DIR__ . '/../Repository/UserRepository.php';

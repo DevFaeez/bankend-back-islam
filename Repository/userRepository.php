@@ -31,7 +31,7 @@ public function register(User $user, Account $account) {
         }
 
         // Step 2: Generate account number
-        $accountNumber = rand(1000000000000000, 9999999999999999); // 16-digit number
+        $accountNumber = rand(1000000000000000, max: 9999999999999999); // 16-digit number
         $username = $account->getUsername();
         $employeeId = null;
 

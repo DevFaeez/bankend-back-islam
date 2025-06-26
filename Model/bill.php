@@ -6,6 +6,8 @@ class Bill {
     private ?int $billAccountNumber;
     private ?int $accountId;
     private ?string $providerTypeId;
+    private ?string $billAmount;
+    private ?string $billDesc;
 
     public function __construct() {
         // No initialization
@@ -17,6 +19,21 @@ class Bill {
 
     public function setBillId(int $billId): void {
         $this->billId = $billId;
+    }
+
+    public function getBillDesc(): ?int {
+        return $this->billDesc;
+    }
+
+    public function setBillDesc(int $billDesc): void {
+        $this->billDesc = $billDesc;
+    }
+        public function getBillAmount(): ?int {
+        return $this->billAmount;
+    }
+
+    public function setBillAmount(int $billAmount): void {
+        $this->billAmount = $billAmount;
     }
 
     public function getBillAccountNumber(): ?int {

@@ -4,7 +4,7 @@
 require_once __DIR__ . '/../model/User.php';
 require_once __DIR__ . '/../model/Account.php';
 require_once __DIR__ . '/../Repository/UserRepository.php';
-require_once __DIR__ . '/../config/Database.php';
+require_once __DIR__ . '/../Config/Database.php';
 
 header("Access-Control-Allow-Origin: http://localhost:5173");
 header("Access-Control-Allow-Headers: Content-Type");

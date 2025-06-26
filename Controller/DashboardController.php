@@ -4,6 +4,7 @@ require_once __DIR__ . '/../Config/Database.php';
 require_once __DIR__ . '/../Repository/DashboardRepository.php';
 
 use Config\Database;
+use Model\Account;
 use Repository\DashboardRepositoryImpl;
 
 header("Access-Control-Allow-Origin: http://localhost:5173");

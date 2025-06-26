@@ -183,22 +183,26 @@ oci_execute($stidAccounts);
             <table>
                 <tr>
                     <th>Account ID</th>
+                    <th>Account Number</th>
                     <th>Password</th>
                     <th>Balance</th>
                     <th>Status</th>
                     <th>Opened At</th>
+                    <th>Username</th>
                     <th>User ID</th>
                     <th>Employee ID</th>
                 </tr>
                 <?php while ($row = oci_fetch_assoc($stidAccounts)) : ?>
                     <tr>
                         <td><?= htmlspecialchars($row['ACCOUNTID']) ?></td>
+                        <td><?= htmlspecialchars($row['ACCOUNTNUMBER']) ?></td>
                         <td><?= htmlspecialchars($row['PASSWORD']) ?></td>
                         <td><?= htmlspecialchars($row['BALANCE']) ?></td>
                         <td><?= htmlspecialchars($row['STATUS']) ?></td>
                         <td><?= htmlspecialchars($row['OPENEDAT']) ?></td>
+                        <td><?= htmlspecialchars($row['USERNAME']) ?></td>
                         <td><?= htmlspecialchars($row['USERID']) ?></td>
-                        <td><?= htmlspecialchars($row['EMPLOYEEID']) ?></td>
+                        <td><?= htmlspecialchars($row['EMPLOYEEID'] ?? 'null') ?></td>
                     </tr>
                 <?php endwhile; ?>
             </table>

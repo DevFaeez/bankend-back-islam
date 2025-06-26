@@ -72,7 +72,6 @@ public function register(User $user, Account $account) {
         oci_bind_by_name($stmtAcc, ':password', $hashedPassword);
         oci_bind_by_name($stmtAcc, ':userId', $userId);
         oci_bind_by_name($stmtAcc, ':employeeId', $employeeId);
-
         oci_bind_by_name($stmtAcc, ':accountId', $accountId, 32); // Output variable
 
         if (!oci_execute($stmtAcc, OCI_NO_AUTO_COMMIT)) {

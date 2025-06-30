@@ -21,7 +21,6 @@ class TransferRepositoryImpl implements TransferRepository {
             // Step 1: Start transaction
             $senderAccountId = $senderAccount->getAccountId();
 
-            // Step 2: Check sender's balance
            // Step 2: Check sender's balance
             $stmtBalance = oci_parse($this->connection, "SELECT balance FROM ACCOUNT WHERE accountId = :accountId FOR UPDATE");
             oci_bind_by_name($stmtBalance, ':accountId', $senderAccountId);
@@ -71,8 +70,8 @@ class TransferRepositoryImpl implements TransferRepository {
             $stmtTrans = oci_parse($this->connection,
                 "INSERT INTO TRANSACTION (type, amount, description, referenceNumber, transactionDate, accountId)
                  VALUES ( :type, :amount, :description, :referenceNumber, SYSDATE, :accountId)
-                 RETURNING transactionId INTO :transactionId"
-            );
+                 RETURNING transactionId INTO :transactionId");
+                 
             oci_bind_by_name($stmtTrans, ':type', $type);
             oci_bind_by_name($stmtTrans, ':amount', $amount);
             oci_bind_by_name($stmtTrans, ':description', $description);

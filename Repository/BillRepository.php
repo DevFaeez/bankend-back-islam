@@ -39,7 +39,7 @@ class BillRepositoryImpl implements BillRepository
             } else {
                 return [
                     "result" => "fail",
-                    "message" => "No data found"
+                    "message" => "No     found"
                 ];
             }
         } catch (\Throwable $th) {
@@ -61,7 +61,7 @@ class BillRepositoryImpl implements BillRepository
             if ($bill->getBillAmount() > $balance) {
                 return [
                     "result" => "failed",
-                    "data" => "account balance not enough"
+                    "message" => "account balance not enough"
                 ];
             }
 

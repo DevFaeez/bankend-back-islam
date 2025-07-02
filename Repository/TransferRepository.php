@@ -3,120 +3,137 @@ namespace Repository;
 
 use Model\Account;
 use Model\Transaction;
+use Model\TransferTransaction;
 
-interface TransferRepository {
-    function transfer(Account $senderAccount, string $receiverAccountNumber, float $amount, Transaction $transaction): array;
+interface TransferRepository
+{
+    function transfer(Account $senderAccount, Account $receiverAccount, Transaction $transaction, TransferTransaction $transferTrasaction): array;
 }
 
-class TransferRepositoryImpl implements TransferRepository {
+class TransferRepositoryImpl implements TransferRepository
+{
 
     private $connection;
 
-    public function __construct($connection) {
+    public function __construct($connection)
+    {
         $this->connection = $connection;
     }
 
-     public function transfer(Account $senderAccount, string $receiverAccountNumber, float $amount, Transaction $transaction): array {
+    public function transfer(Account $senderAccount, Account $receiverAccount, Transaction $transaction, TransferTransaction $transferTrasaction): array
+    {
         try {
             // Step 1: Start transaction
             $senderAccountId = $senderAccount->getAccountId();
+            $senderBalance = $senderAccount->getBalance();
 
             // Step 2: Check sender's balance
-           // Step 2: Check sender's balance
-            $stmtBalance = oci_parse($this->connection, "SELECT balance FROM ACCOUNT WHERE accountId = :accountId FOR UPDATE");
-            oci_bind_by_name($stmtBalance, ':accountId', $senderAccountId);
-            oci_execute($stmtBalance, OCI_NO_AUTO_COMMIT); // Add this flag here
-            $row = oci_fetch_assoc($stmtBalance);
-
-            if (!$row) {
-                oci_rollback($this->connection);
-                return ["result" => "fail", "message" => "Sender account not found"];
+            if ($transaction->getAmount() > $senderBalance) {
+                return [
+                    "result" => "failed",
+                    "message" => "account balance not enough"
+                ];
             }
 
-            if ($row['BALANCE'] < $amount) {
-                oci_rollback($this->connection);
-                return ["result" => "fail", "message" => "Insufficient balance"];
-            }
+            //get the receiverId and check if user exist
+            $receiverAccountNumber = $receiverAccount->getAccountNumber();
+            $sqlSelectReceiverAccount = "SELECT accountId FROM ACCOUNT WHERE accountNumber = :accountNumber";
+            $stmtSqlSelectReceiverAccount = oci_parse($this->connection, $sqlSelectReceiverAccount);
+            oci_bind_by_name($stmtSqlSelectReceiverAccount, ':accountNumber', $receiverAccountNumber);
 
-            // Step 3: Deduct from sender
-            $stmtDeduct = oci_parse($this->connection,
+            oci_execute($stmtSqlSelectReceiverAccount);
+            $receiverAccountFetch = oci_fetch_assoc($stmtSqlSelectReceiverAccount);
+
+            if ($receiverAccountFetch === false) {
+                return [
+                    "result" => "fail",
+                    "message" => "Account number not exist"
+                ];
+            }
+            $receiverAccountId = $receiverAccountFetch["ACCOUNTID"];
+
+
+            //Deduct from sender
+            $transferAmount = $transaction->getAmount();
+            $stmtDeduct = oci_parse(
+                $this->connection,
                 "UPDATE ACCOUNT SET balance = balance - :amount WHERE accountId = :accountId"
             );
-            oci_bind_by_name($stmtDeduct, ':amount', $amount);
+            oci_bind_by_name($stmtDeduct, ':amount', $transferAmount);
             oci_bind_by_name($stmtDeduct, ':accountId', $senderAccountId);
-            oci_execute($stmtDeduct, OCI_NO_AUTO_COMMIT);
 
-            // Step 4: Add to receiver
-            $stmtAdd = oci_parse($this->connection,
-                "UPDATE ACCOUNT SET balance = balance + :amount WHERE accountNumber = :accountNumber"
-            );
-            oci_bind_by_name($stmtAdd, ':amount', $amount);
-            oci_bind_by_name($stmtAdd, ':accountNumber', $receiverAccountNumber);
-            $execAdd = oci_execute($stmtAdd, OCI_NO_AUTO_COMMIT);
-
-            if (!$execAdd || oci_num_rows($stmtAdd) == 0) {
+            if (!oci_execute($stmtDeduct, OCI_NO_AUTO_COMMIT)) {
                 oci_rollback($this->connection);
-                return ["result" => "fail", "message" => "Receiver account not found"];
+                $e = oci_error($stmtDeduct);
+                return ["result" => "fail", "message" => "Deduct balance failed: " . $e['message']];
+            }
+
+            // Add to receiver
+            $stmtAdd = oci_parse(
+                $this->connection,
+                "UPDATE ACCOUNT SET balance = balance + :amount WHERE accountId = :accountIdReceiver"
+            );
+            oci_bind_by_name($stmtAdd, ':amount', $transferAmount);
+            oci_bind_by_name($stmtAdd, ':accountIdReceiver', $receiverAccountId);
+
+            if (!oci_execute($stmtAdd, OCI_NO_AUTO_COMMIT)) {
+                oci_rollback($this->connection);
+                $e = oci_error($stmtAdd);
+                return ["result" => "fail", "message" => "Add balce to receiver account failed: " . $e['message']];
             }
 
             // Step 5: (Optional) Log transaction in TRANSACTION table
-            // $transactionId = rand(100000, 999999);
-            $transactionId = null;
-            $transactionDate = date('Ymd'); //format yyyymmdd
-            $type = $transaction->getType();
+            $type = "transfer";
             $description = $transaction->getDescription();
-            $tempRef = 'TEMP';
+            $referenceNumber = rand(1000000000000000, max: 9999999999999999);
 
-
-            $stmtTrans = oci_parse($this->connection,
-                "INSERT INTO TRANSACTION (type, amount, description, referenceNumber, transactionDate, accountId)
-                 VALUES ( :type, :amount, :description, :referenceNumber, SYSDATE, :accountId)
-                 RETURNING transactionId INTO :transactionId"
+            $stmtTrans = oci_parse(
+                $this->connection,
+                "INSERT INTO TRANSACTION (type, amount, description, referenceNumber, accountId)
+                VALUES ( :type, :amount, :description, :referenceNumber, :accountId)
+                RETURNING transactionId INTO :transactionId"
             );
             oci_bind_by_name($stmtTrans, ':type', $type);
-            oci_bind_by_name($stmtTrans, ':amount', $amount);
+            oci_bind_by_name($stmtTrans, ':amount', $transferAmount);
             oci_bind_by_name($stmtTrans, ':description', $description);
-            oci_bind_by_name($stmtTrans, ':referenceNumber', $tempRef);
+            oci_bind_by_name($stmtTrans, ':referenceNumber', $referenceNumber);
             oci_bind_by_name($stmtTrans, ':accountId', $senderAccountId);
+
+            $transactionId = null;
             oci_bind_by_name($stmtTrans, ':transactionId', $transactionId, 32);
 
-            $execTrans = oci_execute($stmtTrans, OCI_NO_AUTO_COMMIT);
-            if (!$execTrans) {
+            if (!oci_execute($stmtTrans, OCI_NO_AUTO_COMMIT)) {
                 oci_rollback($this->connection);
-                return ["result" => "fail", "message" => "Failed to insert into TRANSACTION table"];
+                $e = oci_error($stmtTrans);
+                return ["result" => "fail", "message" => "Insert transaction failed: " . $e['message']];
             }
 
-            $referenceNumber = "REF-" . $transactionDate . "-" . $transactionId;
+            //add child transaction
+            $transferMode = $transferTrasaction->getTransferMode();
+            $transferType = $transferTrasaction->getTransferType();
+            $sqlTransferTransaction = "INSERT INTO TRANSFERTRANSACTION(TRANSACTIONID, TRANSFERMODE, TRANSFERTYPE, RECEIVERACCOUNT)
+                                    VALUES(:transactionId, :transfermode, :transfertype, :accountIdReceiver)";
+            $stmtSqlTransferTransaction = oci_parse($this->connection, $sqlTransferTransaction);
+            oci_bind_by_name($stmtSqlTransferTransaction, ':transactionId', $transactionId);
+            oci_bind_by_name($stmtSqlTransferTransaction, ':transfermode', $transferMode);
+            oci_bind_by_name($stmtSqlTransferTransaction, ':transfertype', $transferType);
+            oci_bind_by_name($stmtSqlTransferTransaction, ':accountIdReceiver', $receiverAccountId);
 
-            $sqlUpdateRef = "UPDATE TRANSACTION SET referenceNumber = :referenceNumber WHERE transactionId = :transactionId";
-            $stmtUpdateRef = oci_parse($this->connection, $sqlUpdateRef);
-            oci_bind_by_name($stmtUpdateRef, ':referenceNumber', $referenceNumber);
-            oci_bind_by_name($stmtUpdateRef, ':transactionId', $transactionId);
-            oci_execute($stmtUpdateRef, OCI_NO_AUTO_COMMIT);
-
-            $stmtTransferTrans = oci_parse($this->connection,
-                "INSERT INTO TRANSFERTRANSACTION ( transactionId, reference, transferType, accountId)
-                VALUES ( :transactionId, :reference, :transferType, :accountId)"
-            );
-            oci_bind_by_name($stmtTransferTrans, ':reference', $referenceNumber);
-            oci_bind_by_name($stmtTransferTrans, ':transferType', $type);
-            oci_bind_by_name($stmtTransferTrans, ':accountId', $senderAccountId);
-            oci_bind_by_name($stmtTransferTrans, ':transactionId', $transactionId, 32);
-            
-            $execTransfer = oci_execute($stmtTransferTrans, OCI_NO_AUTO_COMMIT);
-            if (!$execTransfer) {
+            if (!oci_execute($stmtSqlTransferTransaction, OCI_NO_AUTO_COMMIT)) {
                 oci_rollback($this->connection);
-                return ["result" => "fail", "message" => "Failed to insert into TRANSFERTRANSACTION table"];
+                $e = oci_error($stmtSqlTransferTransaction);
+                return ["result" => "fail", "message" => "Insert transfer transaction failed: " . $e['message']];
             }
-
-            // Step 6: Commit
             oci_commit($this->connection);
 
-            return ["result" => "success", "message" => "Transfer successful"];
+            return [
+                "result" => "success",
+                "message" => "transfer payment successfully.",
+            ];
 
         } catch (\Throwable $th) {
             oci_rollback($this->connection);
-            return ["result" => "fail", "message" => $th->getMessage()];
+            return ["result" => "fail at catch", "message" => $th->getMessage()];
         }
     }
 }

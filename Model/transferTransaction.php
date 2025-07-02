@@ -2,29 +2,19 @@
 namespace Model;
 
 class TransferTransaction {
-    private ?int $transactionId;
-    private ?string $reference;
+    private ?string $transferMode;
     private ?string $transferType;
-    private ?int $accountId;
 
     public function __construct() {
         // No initialization
     }
 
-    public function getTransactionId(): ?int {
-        return $this->transactionId;
+    public function getTransferMode(): ?string {
+        return $this->transferMode;
     }
 
-    public function setTransactionId(int $transactionId): void {
-        $this->transactionId = $transactionId;
-    }
-
-    public function getReference(): ?string {
-        return $this->reference;
-    }
-
-    public function setReference(?string $reference): void {
-        $this->reference = $reference;
+    public function setTransferMode(?string $transferMode): void {
+        $this->transferMode = $transferMode;
     }
 
     public function getTransferType(): ?string {
@@ -35,11 +25,4 @@ class TransferTransaction {
         $this->transferType = $transferType;
     }
 
-    public function getAccountId(): ?int {
-        return $this->accountId;
-    }
-
-    public function setAccountId(?int $accountId): void {
-        $this->accountId = $accountId;
-    }
 }

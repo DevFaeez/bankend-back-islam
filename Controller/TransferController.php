@@ -1,8 +1,15 @@
 <?php
 
+use Model\TransferTransaction;
+use Config\Database;
+use Model\Account;
+use Model\Transaction;
+use Repository\TransferRepositoryImpl;
+
 require_once __DIR__ . '/../Config/Database.php';
 require_once __DIR__ . '/../model/Account.php';
 require_once __DIR__ . '/../model/Transaction.php';
+require_once __DIR__ . '/../model/TransferTransaction.php';
 require_once __DIR__ . '/../Repository/TransferRepository.php';
 
 header("Access-Control-Allow-Origin: http://localhost:5173");
@@ -14,12 +21,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-use Config\Database;
-use Model\Account;
-use Model\Transaction;
-use Repository\TransferRepositoryImpl;
-
-
 $connection = Database::getConnection();
 $userTransfer = new TransferRepositoryImpl($connection);
 
@@ -30,25 +31,23 @@ switch($action) {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $data = json_decode(file_get_contents("php://input"), true);
 
-        $senderAccountId = $data['senderAccountId'] ?? null;
-        $receiverAccountNumber = $data['receiverAccountNumber'] ?? null;
-        $type = $data['type'] ?? 'transfer'; 
-        $amount = $data['amount'] ?? null;
-        $descriptionText = $data['description'] ?? 'Transfer to another account';
+        $senderAccount = new Account();
+        $receiverAccount = new Account();
+        $transaction = new Transaction();
+        $transferTransaction = new TransferTransaction();
 
-        if ($senderAccountId && $receiverAccountNumber && $amount) {
-            $sender = new Account();
-            $sender->setAccountId((int)$senderAccountId);
+        $senderAccount->setAccountId($data['senderAccountId'] ?? null);
+        $senderAccount->setBalance($data['balance'] ?? null);
 
-            $transaction = new Transaction();
-            $transaction->setDescription($descriptionText);
-            $transaction->setType($type);
+        $receiverAccount->setAccountNumber($data['receiverAccountNumber'] ?? null);
 
-            $result = $userTransfer->transfer($sender, $receiverAccountNumber, (float)$amount, $transaction);
-        } else {
-            $result = ["result" => "fail", "message" => "Missing required fields."];
-        }
+        $transaction->setAmount($data['amount'] ?? null);
+        $transaction->setDescription($data['description'] ?? 'Transfer to another account');
 
+        $transferTransaction->setTransferMode($data['transferMode'] ?? null);
+        $transferTransaction->setTransferType($data['transferType'] ?? null);
+
+        $result = $userTransfer->transfer($senderAccount, $receiverAccount, $transaction, $transferTransaction);
         header('Content-Type: application/json');
         echo json_encode($result);
     }

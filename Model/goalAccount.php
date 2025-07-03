@@ -7,8 +7,10 @@ class GoalAccount {
     private ?float $balance;
     private ?float $goalAmount;
     private ?string $createdAt;
+    private ?string $goalDate;
     private ?string $status;
     private ?string $description;
+    private ?string $goalImage;
     private int $accountId;
 
     public function __construct() {
@@ -30,6 +32,23 @@ class GoalAccount {
     public function setTitle(?string $title): void {
         $this->title = $title;
     }
+
+        public function getGoalDate(): ?string {
+        return $this->goalDate;
+    }
+
+    public function setGoalDate(?string $goalDate): void {
+        $this->goalDate = $goalDate;
+    }
+
+    public function getGoalImage(): ?string {
+        return $this->goalImage;
+    }
+
+    public function setGoalImage(?string $goalImage): void {
+        $this->goalImage = $goalImage;
+    }
+
 
     public function getBalance(): ?float {
         return $this->balance;

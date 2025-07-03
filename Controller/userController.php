@@ -55,6 +55,24 @@ switch ($action) {
         }
         break;
 
+        case 'fetchUser':
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            $accountId = $_GET['accountId'] ?? null;
+
+            if ($accountId) {
+                $result = $userRepo->fetchUser((int)$accountId);
+            } else {
+                $result = [
+                    "result" => "fail",
+                    "message" => "accountId is required"
+                ];
+            }
+
+            header('Content-Type: application/json');
+            echo json_encode($result);
+        }
+        break;
+
     default:
         header('Content-Type: application/json');
         echo json_encode(["result" => "fail", "message" => "Invalid action"]);

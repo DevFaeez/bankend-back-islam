@@ -7,6 +7,8 @@ use Model\Account;
 interface UserRepository {
     function register(User $user, Account $account);
     function login(string $email, string $password): array;
+
+    function fetchUser(int $accountId);
 }
 
 class UserRepositoryImpl implements UserRepository {
@@ -117,7 +119,7 @@ public function register(User $user, Account $account) {
                 "result" => "success",
                 "data" => [
                     "accountId" => $user['ACCOUNTID'],
-                ]
+                ]   
             ];
         } else {
             return [
@@ -133,5 +135,44 @@ public function register(User $user, Account $account) {
         ];
     }
 }
+
+public function fetchUser(int $accountId): array {
+    try {
+        $sql = "SELECT u.userId, u.email, u.nricNumber, u.fullName, u.phoneNumber
+                FROM ACCOUNT a
+                JOIN USERS u ON a.userId = u.userId
+                WHERE a.accountId = :accountId";
+
+        $stmt = oci_parse($this->connection, $sql);
+        oci_bind_by_name($stmt, ':accountId', $accountId);
+        oci_execute($stmt);
+
+        $user = oci_fetch_assoc($stmt);
+
+        if ($user) {
+            return [
+                "result" => "success",
+                "data" => [
+                    "fullName" => $user['FULLNAME'],
+                    "email" => $user['EMAIL'],
+                    "nricNumber" => $user['NRICNUMBER'],
+                    "phoneNumber" => $user['PHONENUMBER'],
+                ]
+            ];
+        } else {
+            return [
+                "result" => "fail",
+                "message" => "User not found"
+            ];
+        }
+
+    } catch (\Throwable $th) {
+        return [
+            "result" => "fail",
+            "message" => $th->getMessage()
+        ];
+    }
+}
+
 
 }

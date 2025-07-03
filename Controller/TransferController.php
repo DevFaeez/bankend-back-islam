@@ -52,4 +52,4 @@ switch($action) {
         echo json_encode($result);
     }
     break;
-}
+}   

@@ -104,28 +104,6 @@ case 'addAmount':
                 "message" => "Missing required fields: accountId, goalAccountId, or amount"
             ]);
         }
-<<<<<<< HEAD
-
-        $result = $userGoalAccount->addAmount($goalAccount, $account);
-        header('Content-Type: application/json');
-        echo json_encode($result);
-    }
-    break;
-
-      case 'deleteGoalAccount':
-    if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {  
-        $data = json_decode(file_get_contents("php://input"), true);
-
-        $goalAccountId = $data['goalAccountId'] ?? null;
-
-        $goalAccount = new GoalAccount();
-        $goalAccount->setGoalAccountId((int)$goalAccountId);
-
-        $result = $userGoalAccount->deleteGoalAccount($goalAccount);
-        header('Content-Type: application/json');
-        echo json_encode($result);
-=======
->>>>>>> 666d5e3ce8c7227cad9366c5f115e49f352ca76a
     }
     break;
 

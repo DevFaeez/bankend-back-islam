@@ -8,6 +8,7 @@ use Model\TransferTransaction;
 interface TransferRepository
 {
     function transfer(Account $senderAccount, Account $receiverAccount, Transaction $transaction, TransferTransaction $transferTrasaction): array;
+    function fetchAllTransfer(): array;
 }
 
 class TransferRepositoryImpl implements TransferRepository
@@ -134,6 +135,34 @@ class TransferRepositoryImpl implements TransferRepository
         } catch (\Throwable $th) {
             oci_rollback($this->connection);
             return ["result" => "fail at catch", "message" => $th->getMessage()];
+        }
+    }
+
+    public function fetchAllTransfer(): array {
+        try {
+            $sql = "SELECT *
+                    FROM TRANSACTION T
+                    JOIN TRANSFERTRANSACTION S ON T.transactionId = S.transactionId
+                    JOIN ACCOUNT A ON S.receiverAccount = A.accountId";
+
+            $stmt = oci_parse($this->connection, $sql); 
+            oci_execute($stmt);
+
+            $transfTransaction = [];
+            while (($row = oci_fetch_assoc($stmt)) !== false) {
+                $transfTransaction[] = $row;
+            }
+
+            return [
+                "result" => "success",
+                "data" => $transfTransaction
+            ];
+
+        } catch (\Throwable $th) {
+            return [
+                "result" => "fail",
+                "message" => $th->getMessage()
+            ];
         }
     }
 }

@@ -3,6 +3,7 @@ namespace Repository;
 
 interface TransactionRepository {
     function fetchAllTrans(): array;
+
 }
 
 class TransactionRepositoryImpl implements TransactionRepository {

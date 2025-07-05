@@ -32,6 +32,13 @@ switch($action) {
             echo json_encode($result);
         }
     break;
+    case 'fetchAllBillTrans': 
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            $result = $billRepo->fetchAllBillTrans();
+            header('Content-Type: application/json');
+            echo json_encode($result);
+        }
+    break;
     case 'billPayment': 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data = json_decode(file_get_contents("php://input"), true);

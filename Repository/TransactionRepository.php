@@ -7,6 +7,7 @@ use Repository\BillRepository;
 interface TransactionRepository
 {
     function fetchAllTransaction(int $accountId);
+    function fetchAllTrans();
 }
 
 class TransactionRepositoryImp implements TransactionRepository
@@ -15,6 +16,32 @@ class TransactionRepositoryImp implements TransactionRepository
     public function __construct($connection)
     {
         $this->connection = $connection;
+    }
+
+    function fetchAllTrans(): array { 
+         try {
+            $sql = "SELECT *
+                    FROM TRANSACTION";
+
+            $stmt = oci_parse($this->connection, $sql); 
+            oci_execute($stmt);
+
+            $billTransaction = [];
+            while (($row = oci_fetch_assoc($stmt)) !== false) {
+                $billTransaction[] = $row;
+            }
+
+            return [
+                "result" => "success",
+                "data" => $billTransaction
+            ];
+
+        } catch (\Throwable $th) {
+            return [
+                "result" => "fail",
+                "message" => $th->getMessage()
+            ];
+        }
     }
 
 function fetchAllTransaction(int $accountId)

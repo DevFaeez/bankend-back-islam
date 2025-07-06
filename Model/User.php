@@ -10,6 +10,7 @@ class User {
     private string $fullName;
     private string $phoneNumber;
     private string $status;
+    private string $address;
 
 
 
@@ -71,5 +72,12 @@ public function __construct() {
 
     public function setStatus(string $status): void {
         $this->status = $status;
+    }
+    public function getAddress(): string {
+        return $this->address;
+    }
+
+    public function setAddress(string $address): void {
+        $this->address = $address;
     }
 }

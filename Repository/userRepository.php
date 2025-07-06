@@ -11,7 +11,7 @@ interface UserRepository {
     function fetchUser(int $accountId);
     function fetchAllUser();
 
-    function updateUserProfile(User $user, int $accountId);
+    function updateUserProfile(User $user, Account $account, int $accountId);
 }
 
 class UserRepositoryImpl implements UserRepository {
@@ -141,7 +141,7 @@ public function register(User $user, Account $account) {
 
 public function fetchUser(int $accountId): array {
     try {
-        $sql = "SELECT u.userId, u.email, u.nricNumber, u.fullName, u.phoneNumber
+        $sql = "SELECT u.userId, u.email, u.nricNumber, u.fullName, u.phoneNumber, u.address
                 FROM ACCOUNT a
                 JOIN USERS u ON a.userId = u.userId
                 WHERE a.accountId = :accountId";
@@ -160,6 +160,7 @@ public function fetchUser(int $accountId): array {
                     "email" => $user['EMAIL'],
                     "nricNumber" => $user['NRICNUMBER'],
                     "phoneNumber" => $user['PHONENUMBER'],
+                    "address" => $user['ADDRESS'],
                 ]
             ];
         } else {
@@ -201,10 +202,12 @@ public function fetchAllUser(): array {
         }
     }
 
-    public function updateUserProfile(User $user, int $accountId): array {
+    public function updateUserProfile(User $user, Account $account, int $accountId): array {
     try {
-        // Fetch related userId
-        $stmtGetUserId = oci_parse($this->connection, "SELECT userId FROM ACCOUNT WHERE accountId = :accountId");
+        // Step 1: Fetch related userId
+        $stmtGetUserId = oci_parse($this->connection, 
+            "SELECT userId FROM ACCOUNT WHERE accountId = :accountId"
+        );
         oci_bind_by_name($stmtGetUserId, ":accountId", $accountId);
         oci_execute($stmtGetUserId);
         $row = oci_fetch_assoc($stmtGetUserId);
@@ -215,18 +218,21 @@ public function fetchAllUser(): array {
 
         $userId = $row['USERID'];
 
-        // Now update user profile
-        $sql = "UPDATE USERS SET fullName = :fullName, email = :email, phoneNumber = :phoneNumber
+        // Step 2: Update USERS table
+        $sql = "UPDATE USERS 
+                SET fullName = :fullName, email = :email, phoneNumber = :phoneNumber, address = :address
                 WHERE userId = :userId";
         $stmt = oci_parse($this->connection, $sql);
 
         $fullName = $user->getFullName();
         $email = $user->getEmail();
         $phoneNumber = $user->getPhoneNumber();
+        $address = $user->getAddress();
 
         oci_bind_by_name($stmt, ':fullName', $fullName);
         oci_bind_by_name($stmt, ':email', $email);
         oci_bind_by_name($stmt, ':phoneNumber', $phoneNumber);
+        oci_bind_by_name($stmt, ':address', $address);
         oci_bind_by_name($stmt, ':userId', $userId);
 
         if (!oci_execute($stmt, OCI_NO_AUTO_COMMIT)) {
@@ -235,8 +241,24 @@ public function fetchAllUser(): array {
             return ["result" => "fail", "message" => $e['message']];
         }
 
-        oci_commit($this->connection);
+        // Step 3: Update ACCOUNT table
+        $sqlAccount = "UPDATE ACCOUNT 
+                       SET PASSWORD = :password
+                       WHERE ACCOUNTID = :accountId";
+        $stmtAccount = oci_parse($this->connection, $sqlAccount);
 
+        $hashedPassword = password_hash($account->getPassword(), PASSWORD_DEFAULT);
+
+        oci_bind_by_name($stmtAccount, ':password', $hashedPassword);
+        oci_bind_by_name($stmtAccount, ':accountId', $accountId);
+
+        if (!oci_execute($stmtAccount, OCI_NO_AUTO_COMMIT)) {
+            $e = oci_error($stmtAccount);
+            oci_rollback($this->connection);
+            return ["result" => "fail", "message" => $e['message']];
+        }
+
+        oci_commit($this->connection);
         return ["result" => "success", "message" => "User profile updated successfully"];
 
     } catch (\Throwable $th) {
@@ -244,6 +266,7 @@ public function fetchAllUser(): array {
         return ["result" => "fail", "message" => $th->getMessage()];
     }
 }
+
 
 
 

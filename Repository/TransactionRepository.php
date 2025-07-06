@@ -64,7 +64,7 @@ function fetchAllTransaction(int $accountId)
         
         // 3. Bill transactions
         $sqlBill = "
-            SELECT *
+            SELECT t.*, b.*, i.*, p.*, q.*, p.name As bill
             FROM TRANSACTION t
             JOIN BILLTRANSACTION b ON t.transactionId = b.transactionId
             JOIN BILL i ON b.billId = i.billId
@@ -85,10 +85,11 @@ function fetchAllTransaction(int $accountId)
         
         // 4. loan transaction
         $sqlLoan = "
-            SELECT *
+            SELECT t.*, l.*, a.*, n.*, a.AMOUNT AS APPLYAMOUNT, a.CREATEDAT AS APPLYDATE
             FROM TRANSACTION t
             JOIN LOANPAYMENTTRANSACTION l ON t.transactionId = l.transactionId
             JOIN ACCOUNTLOAN a ON l.loanId = a.accountloanid
+            JOIN LOAN n ON a.LOANID = n.LOANID
             WHERE t.accountId = :accountId
             AND t.transactionDate >= ADD_MONTHS(SYSDATE, -1)
         ";

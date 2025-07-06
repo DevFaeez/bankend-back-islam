@@ -8,6 +8,8 @@ interface BillRepository
 {
     function fetchBillProvider();
     function billPayment(Bill $bill, Account $account);
+
+    function fetchAllBillTrans();
 }
 
 class BillRepositoryImpl implements BillRepository
@@ -45,6 +47,36 @@ class BillRepositoryImpl implements BillRepository
         } catch (\Throwable $th) {
             return [
                 "result" => "error",
+                "message" => $th->getMessage()
+            ];
+        }
+    }
+
+    function fetchAllBillTrans(): array { 
+         try {
+            $sql = "SELECT *
+                    FROM TRANSACTION t
+                    JOIN BILLTRANSACTION b ON t.transactionId = b.transactionId
+                    JOIN BILL i ON b.billId = i.billId
+                    JOIN PROVIDERTYPE p ON i.providertypeid =  p.providertypeid
+                    JOIN BILLTYPE q ON p.billtypeid = q.billtypeid";
+
+            $stmt = oci_parse($this->connection, $sql); 
+            oci_execute($stmt);
+
+            $billTransaction = [];
+            while (($row = oci_fetch_assoc($stmt)) !== false) {
+                $billTransaction[] = $row;
+            }
+
+            return [
+                "result" => "success",
+                "data" => $billTransaction
+            ];
+
+        } catch (\Throwable $th) {
+            return [
+                "result" => "fail",
                 "message" => $th->getMessage()
             ];
         }

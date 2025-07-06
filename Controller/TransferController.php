@@ -52,4 +52,16 @@ switch($action) {
         echo json_encode($result);
     }
     break;
+
+    case 'fetchAllTransfer':
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            $result = $userTransfer->fetchAllTransfer();
+
+            header('Content-Type: application/json');
+            echo json_encode($result);
+        } else {
+            http_response_code(405); // Method Not Allowed
+            echo json_encode(["result" => "fail", "message" => "Method not allowed"]);
+        }
+        break;
 }   

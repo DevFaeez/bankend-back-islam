@@ -5,7 +5,7 @@ class Employee {
     private ?int $employeeId;
     private ?string $username;
     private ?string $email;
-    private ?int $password;
+    private ?string $password;
     private ?string $fullName;
     private ?string $role;
     private ?string $status;
@@ -39,11 +39,11 @@ class Employee {
         $this->email = $email;
     }
 
-    public function getPassword(): ?int {
+    public function getPassword(): ?string {
         return $this->password;
     }
 
-    public function setPassword(?int $password): void {
+    public function setPassword(?string $password): void {
         $this->password = $password;
     }
 

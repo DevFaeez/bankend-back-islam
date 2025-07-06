@@ -7,6 +7,11 @@ use Model\Account;
 interface UserRepository {
     function register(User $user, Account $account);
     function login(string $email, string $password): array;
+
+    function fetchUser(int $accountId);
+    function fetchAllUser();
+
+    function updateUserProfile(User $user, int $accountId);
 }
 
 class UserRepositoryImpl implements UserRepository {
@@ -117,7 +122,7 @@ public function register(User $user, Account $account) {
                 "result" => "success",
                 "data" => [
                     "accountId" => $user['ACCOUNTID'],
-                ]
+                ]   
             ];
         } else {
             return [
@@ -134,4 +139,113 @@ public function register(User $user, Account $account) {
     }
 }
 
+public function fetchUser(int $accountId): array {
+    try {
+        $sql = "SELECT u.userId, u.email, u.nricNumber, u.fullName, u.phoneNumber
+                FROM ACCOUNT a
+                JOIN USERS u ON a.userId = u.userId
+                WHERE a.accountId = :accountId";
+
+        $stmt = oci_parse($this->connection, $sql);
+        oci_bind_by_name($stmt, ':accountId', $accountId);
+        oci_execute($stmt);
+
+        $user = oci_fetch_assoc($stmt);
+
+        if ($user) {
+            return [
+                "result" => "success",
+                "data" => [
+                    "fullName" => $user['FULLNAME'],
+                    "email" => $user['EMAIL'],
+                    "nricNumber" => $user['NRICNUMBER'],
+                    "phoneNumber" => $user['PHONENUMBER'],
+                ]
+            ];
+        } else {
+            return [
+                "result" => "fail",
+                "message" => "User not found"
+            ];
+        }
+
+    } catch (\Throwable $th) {
+        return [
+            "result" => "fail",
+            "message" => $th->getMessage()
+        ];
+    }
 }
+
+public function fetchAllUser(): array {
+        try {
+            $sql = "SELECT * FROM USERS S JOIN ACCOUNT A ON S.userId = A.userId";
+            $stmt = oci_parse($this->connection, $sql);
+            oci_execute($stmt);
+
+            $user = [];
+            while (($row = oci_fetch_assoc($stmt)) !== false) {
+                $user[] = $row;
+            }
+
+            return [
+                "result" => "success",
+                "data" => $user
+            ];
+
+        } catch (\Throwable $th) {
+            return [
+                "result" => "fail",
+                "message" => $th->getMessage()
+            ];
+        }
+    }
+
+    public function updateUserProfile(User $user, int $accountId): array {
+    try {
+        // Fetch related userId
+        $stmtGetUserId = oci_parse($this->connection, "SELECT userId FROM ACCOUNT WHERE accountId = :accountId");
+        oci_bind_by_name($stmtGetUserId, ":accountId", $accountId);
+        oci_execute($stmtGetUserId);
+        $row = oci_fetch_assoc($stmtGetUserId);
+
+        if (!$row) {
+            return ["result" => "fail", "message" => "Account not found"];
+        }
+
+        $userId = $row['USERID'];
+
+        // Now update user profile
+        $sql = "UPDATE USERS SET fullName = :fullName, email = :email, phoneNumber = :phoneNumber
+                WHERE userId = :userId";
+        $stmt = oci_parse($this->connection, $sql);
+
+        $fullName = $user->getFullName();
+        $email = $user->getEmail();
+        $phoneNumber = $user->getPhoneNumber();
+
+        oci_bind_by_name($stmt, ':fullName', $fullName);
+        oci_bind_by_name($stmt, ':email', $email);
+        oci_bind_by_name($stmt, ':phoneNumber', $phoneNumber);
+        oci_bind_by_name($stmt, ':userId', $userId);
+
+        if (!oci_execute($stmt, OCI_NO_AUTO_COMMIT)) {
+            $e = oci_error($stmt);
+            oci_rollback($this->connection);
+            return ["result" => "fail", "message" => $e['message']];
+        }
+
+        oci_commit($this->connection);
+
+        return ["result" => "success", "message" => "User profile updated successfully"];
+
+    } catch (\Throwable $th) {
+        oci_rollback($this->connection);
+        return ["result" => "fail", "message" => $th->getMessage()];
+    }
+}
+
+
+
+}
+

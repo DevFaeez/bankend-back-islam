@@ -55,6 +55,61 @@ switch ($action) {
         }
     break;
 
+        case 'fetchUser':
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            $accountId = $_GET['accountId'] ?? null;
+
+            if ($accountId) {
+                $result = $userRepo->fetchUser((int)$accountId);
+            } else {
+                $result = [
+                    "result" => "fail",
+                    "message" => "accountId is required"
+                ];
+            }
+
+            header('Content-Type: application/json');
+            echo json_encode($result);
+        }
+        break;
+
+         case 'fetchAllUser':
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            $result = $userRepo->fetchAllUser();
+
+            header('Content-Type: application/json');
+            echo json_encode($result);
+        } else {
+            http_response_code(405); // Method Not Allowed
+            echo json_encode(["result" => "fail", "message" => "Method not allowed"]);
+        }
+        break;
+
+        case 'updateUser':
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $data = json_decode(file_get_contents("php://input"), true);
+
+        if (!isset($data['accountId'])) {
+            echo json_encode(["result" => "fail", "message" => "accountId is required"]);
+            exit;
+        }
+
+        $user = new User();
+        $user->setFullName($data['fullName'] ?? '');
+        $user->setEmail($data['email'] ?? '');
+        $user->setPhoneNumber($data['phoneNumber'] ?? '');
+
+        $result = $userRepo->updateUserProfile($user, (int)$data['accountId']);
+
+        header('Content-Type: application/json');
+        echo json_encode($result);
+    } else {
+        http_response_code(405); // Method Not Allowed
+        echo json_encode(["result" => "fail", "message" => "Method not allowed"]);
+    }
+    break;
+
+
     default:
         header('Content-Type: application/json');
         echo json_encode(["result" => "fail", "message" => "Invalid action"]);

@@ -31,5 +31,13 @@ switch($action) {
             echo json_encode($result);
         }
     break;
+
+    case 'fetchAllTrans': 
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            $result = $transactionRepo->fetchAllTrans();
+            header('Content-Type: application/json');
+            echo json_encode($result);
+        }
+    break;
     
 }

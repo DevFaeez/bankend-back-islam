@@ -98,8 +98,12 @@ switch ($action) {
         $user->setFullName($data['fullName'] ?? '');
         $user->setEmail($data['email'] ?? '');
         $user->setPhoneNumber($data['phoneNumber'] ?? '');
+        $user->setAddress($data['address'] ?? '');
 
-        $result = $userRepo->updateUserProfile($user, (int)$data['accountId']);
+        $account = new Account();
+        $account->setPassword($data['password'] ?? '');
+
+        $result = $userRepo->updateUserProfile($user, $account, (int)$data['accountId']);
 
         header('Content-Type: application/json');
         echo json_encode($result);

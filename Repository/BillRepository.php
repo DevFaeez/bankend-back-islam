@@ -39,7 +39,7 @@ class BillRepositoryImpl implements BillRepository
             } else {
                 return [
                     "result" => "fail",
-                    "message" => "No     found"
+                    "message" => "No found"
                 ];
             }
         } catch (\Throwable $th) {

@@ -119,8 +119,6 @@ class GoalAccountRepositoryImpl implements GoalAccountRepository
             oci_execute($stmtCheck, OCI_NO_AUTO_COMMIT);
             $row = oci_fetch_assoc($stmtCheck);
 
-
-
             if (!$row) {
                 oci_rollback($this->connection);
                 return ["result" => "fail", "message" => "Account not found"];

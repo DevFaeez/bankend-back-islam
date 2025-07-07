@@ -62,7 +62,7 @@ class LoanRepositoryImpl implements LoanRepository
             $accountId = $account->getAccountId();
 
             $balance = 0;
-            $status = 'Pending';
+            $status = 'Approve';
 
             $sqlSubmitLoan = "INSERT INTO ACCOUNTLOAN (
                                 ICSLIP, PAYSLIP, PURPOSE, AMOUNT, BALANCE,

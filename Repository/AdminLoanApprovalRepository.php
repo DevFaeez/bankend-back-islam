@@ -65,7 +65,7 @@ class AdminLoanApprovalRepositoryImp implements AdminLoanApprovalRepository
         if ($status === "Approve") {
             $stmtFetchLoan = oci_parse(
                 $this->connection,
-                "SELECT AMOUNT, ACCOUNTID FROM ACCOUNTLOAN WHERE ACCOUNTLOANID = :loanId"
+                "SELECT * FROM ACCOUNTLOAN AL JOIN LOAN L ON AL.LOANID = L.LOANID WHERE ACCOUNTLOANID = :loanId"
             );
             oci_bind_by_name($stmtFetchLoan, ':loanId', $loanId);
 
@@ -77,14 +77,18 @@ class AdminLoanApprovalRepositoryImp implements AdminLoanApprovalRepository
 
             $loanAmount = 0;
             $accountId = 0;
+            $interestrate = 0;
 
             if ($row = oci_fetch_assoc($stmtFetchLoan)) {
                 $loanAmount = $row['AMOUNT'];
                 $accountId = $row['ACCOUNTID'];
+                $interestrate = $row['INTERESTRATE'];
             } else {
                 oci_rollback($this->connection);
                 return ["result" => "fail", "message" => "Loan not found"];
             }
+
+            $loanAmount = $loanAmount / (1 + $interestrate / 100);
 
             $stmtUpdateBalance = oci_parse(
                 $this->connection,

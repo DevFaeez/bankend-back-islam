@@ -62,7 +62,7 @@ class LoanRepositoryImpl implements LoanRepository
             $accountId = $account->getAccountId();
 
             $balance = 0;
-            $status = 'Approve';
+            $status = 'Pending';
 
             $sqlSubmitLoan = "INSERT INTO ACCOUNTLOAN (
                                 ICSLIP, PAYSLIP, PURPOSE, AMOUNT, BALANCE,
@@ -108,8 +108,9 @@ class LoanRepositoryImpl implements LoanRepository
     {
         try {
 
-            $sqlFetchMyLoan = "SELECT * FROM ACCOUNTLOAN WHERE ACCOUNTID = 41 AND STATUS = 'Pending'";
+            $sqlFetchMyLoan = "SELECT * FROM ACCOUNTLOAN WHERE ACCOUNTID = :accountId AND STATUS = 'Approve'";
             $StmtSqlFetchMyLoan = oci_parse($this->connection, $sqlFetchMyLoan);
+            oci_bind_by_name($StmtSqlFetchMyLoan, ':accountId', $accountId);
             oci_execute($StmtSqlFetchMyLoan);
 
             $results = [];

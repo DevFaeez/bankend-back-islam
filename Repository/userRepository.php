@@ -38,7 +38,7 @@ public function register(User $user, Account $account) {
         }
 
         // Step 2: Generate account number
-        $accountNumber = rand(1000000000000000, max: 9999999999999999); // 16-digit number
+        $accountNumber = rand(1000000000000000, max: 9999999999999999);
         $username = $account->getUsername();
         $employeeId = null;
 
@@ -69,8 +69,8 @@ public function register(User $user, Account $account) {
         $hashedPassword = password_hash($account->getPassword(), PASSWORD_DEFAULT);
         $accountId = null;
 
-        $sqlInsertAcc = "INSERT INTO ACCOUNT (accountNumber, username, password, balance, status, openedAt, userId, employeeId)
-                        VALUES (:accountNumber, :username, :password, 0.0, 'active', SYSDATE, :userId, :employeeId)
+        $sqlInsertAcc = "INSERT INTO ACCOUNT (accountNumber, username, password, balance, status, openedAt, userId)
+                        VALUES (:accountNumber, :username, :password, 0.0, 'active', SYSDATE, :userId)
                         RETURNING accountId INTO :accountId";
 
         $stmtAcc = oci_parse($this->connection, $sqlInsertAcc);
@@ -78,7 +78,6 @@ public function register(User $user, Account $account) {
         oci_bind_by_name($stmtAcc, ':username', $username);
         oci_bind_by_name($stmtAcc, ':password', $hashedPassword);
         oci_bind_by_name($stmtAcc, ':userId', $userId);
-        oci_bind_by_name($stmtAcc, ':employeeId', $employeeId);
         oci_bind_by_name($stmtAcc, ':accountId', $accountId, 32); // Output variable
 
         if (!oci_execute($stmtAcc, OCI_NO_AUTO_COMMIT)) {

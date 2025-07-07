@@ -62,6 +62,44 @@ class AdminLoanApprovalRepositoryImp implements AdminLoanApprovalRepository
             return ["result" => "fail", "message" => "change status failed failed: " . $e['message']];
         }
 
+        if ($status === "Approve") {
+            $stmtFetchLoan = oci_parse(
+                $this->connection,
+                "SELECT AMOUNT, ACCOUNTID FROM ACCOUNTLOAN WHERE ACCOUNTLOANID = :loanId"
+            );
+            oci_bind_by_name($stmtFetchLoan, ':loanId', $loanId);
+
+            if (!oci_execute($stmtFetchLoan)) {
+                oci_rollback($this->connection);
+                $e = oci_error($stmtFetchLoan);
+                return ["result" => "fail", "message" => "Fetch loan info failed: " . $e['message']];
+            }
+
+            $loanAmount = 0;
+            $accountId = 0;
+
+            if ($row = oci_fetch_assoc($stmtFetchLoan)) {
+                $loanAmount = $row['AMOUNT'];
+                $accountId = $row['ACCOUNTID'];
+            } else {
+                oci_rollback($this->connection);
+                return ["result" => "fail", "message" => "Loan not found"];
+            }
+
+            $stmtUpdateBalance = oci_parse(
+                $this->connection,
+                "UPDATE ACCOUNT SET BALANCE = BALANCE + :loanAmount WHERE ACCOUNTID = :accountId"
+            );
+            oci_bind_by_name($stmtUpdateBalance, ':loanAmount', $loanAmount);
+            oci_bind_by_name($stmtUpdateBalance, ':accountId', $accountId);
+
+            if (!oci_execute($stmtUpdateBalance, OCI_NO_AUTO_COMMIT)) {
+                oci_rollback($this->connection);
+                $e = oci_error($stmtUpdateBalance);
+                return ["result" => "fail", "message" => "Update balance failed: " . $e['message']];
+            }
+        }
+
         oci_commit($this->connection);
 
         return [

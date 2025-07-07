@@ -112,7 +112,7 @@ function fetchAllTransaction(int $accountId)
         
         // 4. loan transaction
         $sqlLoan = "
-            SELECT t.*, l.*, a.*, n.*, a.AMOUNT AS APPLYAMOUNT, a.CREATEDAT AS APPLYDATE
+            SELECT t.*, l.*, a.*, n.*, a.AMOUNT AS APPLYAMOUNT, a.CREATEDAT AS APPLYDATE, t.amount As payamount
             FROM TRANSACTION t
             JOIN LOANPAYMENTTRANSACTION l ON t.transactionId = l.transactionId
             JOIN ACCOUNTLOAN a ON l.loanId = a.accountloanid

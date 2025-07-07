@@ -143,7 +143,8 @@ class TransferRepositoryImpl implements TransferRepository
             $sql = "SELECT *
                     FROM TRANSACTION T
                     JOIN TRANSFERTRANSACTION S ON T.transactionId = S.transactionId
-                    JOIN ACCOUNT A ON S.receiverAccount = A.accountId";
+                    JOIN ACCOUNT A ON S.receiverAccount = A.accountId
+                    JOIN USERS U ON A.userId = U.userId";
 
             $stmt = oci_parse($this->connection, $sql); 
             oci_execute($stmt);

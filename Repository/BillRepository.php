@@ -54,12 +54,26 @@ class BillRepositoryImpl implements BillRepository
 
     function fetchAllBillTrans(): array { 
          try {
-            $sql = "SELECT *
-                    FROM TRANSACTION t
-                    JOIN BILLTRANSACTION b ON t.transactionId = b.transactionId
-                    JOIN BILL i ON b.billId = i.billId
-                    JOIN PROVIDERTYPE p ON i.providertypeid =  p.providertypeid
-                    JOIN BILLTYPE q ON p.billtypeid = q.billtypeid";
+            $sql = "SELECT 
+                    t.transactionId,
+                    t.type,
+                    t.amount,
+                    t.description,
+                    t.transactionDate,
+                    t.referenceNumber,
+                    t.accountId,
+                    i.billId,
+                    i.billAccountNumber,
+                    p.providertypeid,
+                    p.name AS providerName,
+                    q.billtypeid,
+                    q.name AS billTypeName
+                FROM TRANSACTION t
+                JOIN BILLTRANSACTION b ON t.transactionId = b.transactionId
+                JOIN BILL i ON b.billId = i.billId
+                JOIN PROVIDERTYPE p ON i.providertypeid = p.providertypeid
+                JOIN BILLTYPE q ON p.billtypeid = q.billtypeid
+                ";
 
             $stmt = oci_parse($this->connection, $sql); 
             oci_execute($stmt);

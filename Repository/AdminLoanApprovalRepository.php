@@ -7,6 +7,8 @@ interface AdminLoanApprovalRepository
     function fetchAllLoan();
     function updateLoanStatus(string $status, int $loanId, int $employeeId);
     function downloadLoanData(int $loanId);
+    function fetchAllLoanTrans();
+    
 }
 
 class AdminLoanApprovalRepositoryImp implements AdminLoanApprovalRepository
@@ -141,5 +143,61 @@ function downloadLoanData(int $loanId)
         "data" => $row
     ];
 }
+
+public function fetchAllLoanTrans() 
+{
+    try {
+        $sql = "SELECT 
+                al.ACCOUNTLOANID,
+                al.AMOUNT,
+                al.BALANCE AS LOAN_BALANCE,
+                al.TERM,
+                al.PURPOSE,
+                al.STATUS AS LOAN_STATUS,
+                al.CREATEDAT,
+
+                l.LOANTYPE,
+                l.INTERESTRATE,
+
+                a.ACCOUNTID,
+                a.USERNAME,
+                a.BALANCE AS ACCOUNT_BALANCE,
+                a.STATUS AS ACCOUNT_STATUS,
+
+                lpt.TRANSACTIONID AS LOAN_TRANSACTION_ID,
+                t.TYPE AS TRANSACTION_TYPE,
+                t.AMOUNT AS TRANSACTION_AMOUNT,
+                t.DESCRIPTION,
+                t.TRANSACTIONDATE,
+                t.REFERENCENUMBER
+
+            FROM ACCOUNTLOAN al
+            JOIN LOAN l ON al.LOANID = l.LOANID
+            JOIN ACCOUNT a ON al.ACCOUNTID = a.ACCOUNTID
+            LEFT JOIN LOANPAYMENTTRANSACTION lpt ON lpt.LOANID = al.ACCOUNTLOANID
+            LEFT JOIN TRANSACTION t ON t.TRANSACTIONID = lpt.TRANSACTIONID";
+
+        $stmt = oci_parse($this->connection, $sql);
+        oci_execute($stmt);
+
+        $result = [];
+        while ($row = oci_fetch_assoc($stmt)) {
+            $result[] = $row;
+        }
+
+        return [
+            "result" => "success",
+            "message" => "Fetch loan transactions successful",
+            "data" => $result
+        ];
+
+    } catch (\Throwable $th) {
+        oci_rollback($this->connection);
+        return ["result" => "fail", "message" => $th->getMessage()];
+    }
+}
+
+
+
 
 }

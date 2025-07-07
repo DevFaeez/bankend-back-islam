@@ -47,6 +47,8 @@ class LoanRepositoryImpl implements LoanRepository
         }
     }
 
+ 
+
     public function SubmitNewLoan(Account $account, AccountLoan $loan, Loan $selectedLoan)
     {
         try {
@@ -243,5 +245,7 @@ class LoanRepositoryImpl implements LoanRepository
             return ["result" => "fail", "message" => $th->getMessage()];
         }
     }
+
+    
 
 }

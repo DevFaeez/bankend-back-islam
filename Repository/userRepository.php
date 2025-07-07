@@ -11,7 +11,9 @@ interface UserRepository {
     function fetchUser(int $accountId);
     function fetchAllUser();
 
-    function updateUserProfile(User $user, Account $account, int $accountId);
+    function updateUserProfile(User $user, int $accountId);
+
+    function updateUserPassword(string $currentPassword, string $newPassword, int $accountId): array;
 }
 
 class UserRepositoryImpl implements UserRepository {
@@ -202,7 +204,7 @@ public function fetchAllUser(): array {
         }
     }
 
-    public function updateUserProfile(User $user, Account $account, int $accountId): array {
+    public function updateUserProfile(User $user, int $accountId): array {
     try {
         // Step 1: Fetch related userId
         $stmtGetUserId = oci_parse($this->connection, 
@@ -241,23 +243,6 @@ public function fetchAllUser(): array {
             return ["result" => "fail", "message" => $e['message']];
         }
 
-        // Step 3: Update ACCOUNT table
-        $sqlAccount = "UPDATE ACCOUNT 
-                       SET PASSWORD = :password
-                       WHERE ACCOUNTID = :accountId";
-        $stmtAccount = oci_parse($this->connection, $sqlAccount);
-
-        $hashedPassword = password_hash($account->getPassword(), PASSWORD_DEFAULT);
-
-        oci_bind_by_name($stmtAccount, ':password', $hashedPassword);
-        oci_bind_by_name($stmtAccount, ':accountId', $accountId);
-
-        if (!oci_execute($stmtAccount, OCI_NO_AUTO_COMMIT)) {
-            $e = oci_error($stmtAccount);
-            oci_rollback($this->connection);
-            return ["result" => "fail", "message" => $e['message']];
-        }
-
         oci_commit($this->connection);
         return ["result" => "success", "message" => "User profile updated successfully"];
 
@@ -266,6 +251,52 @@ public function fetchAllUser(): array {
         return ["result" => "fail", "message" => $th->getMessage()];
     }
 }
+
+public function updateUserPassword(string $currentPassword, string $newPassword, int $accountId): array {
+    try {
+        // Step 1: Fetch current password from DB
+        $stmt = oci_parse($this->connection, 
+            "SELECT password FROM ACCOUNT WHERE accountId = :accountId"
+        );
+        oci_bind_by_name($stmt, ':accountId', $accountId);
+        oci_execute($stmt);
+        $row = oci_fetch_assoc($stmt);
+
+        if (!$row) {
+            return ["result" => "fail", "message" => "Account not found"];
+        }
+
+        $hashedPassword = $row['PASSWORD'];
+
+        // Step 2: Verify current password
+        if (!password_verify($currentPassword, $hashedPassword)) {
+            return ["result" => "fail", "message" => "Current password is incorrect"];
+        }
+
+        // Step 3: Hash new password and update
+        $newHashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
+        $updateStmt = oci_parse($this->connection, 
+            "UPDATE ACCOUNT SET password = :newPassword WHERE accountId = :accountId"
+        );
+        oci_bind_by_name($updateStmt, ':newPassword', $newHashedPassword);
+        oci_bind_by_name($updateStmt, ':accountId', $accountId);
+
+        if (!oci_execute($updateStmt, OCI_NO_AUTO_COMMIT)) {
+            $e = oci_error($updateStmt);
+            oci_rollback($this->connection);
+            return ["result" => "fail", "message" => $e['message']];
+        }
+
+        oci_commit($this->connection);
+        return ["result" => "success", "message" => "Password updated successfully"];
+
+    } catch (\Throwable $th) {
+        oci_rollback($this->connection);
+        return ["result" => "fail", "message" => $th->getMessage()];
+    }
+}
+
+
 
 
 

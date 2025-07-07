@@ -74,44 +74,66 @@ switch ($action) {
         break;
 
          case 'fetchAllUser':
-        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-            $result = $userRepo->fetchAllUser();
+            if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+                $result = $userRepo->fetchAllUser();
+
+                header('Content-Type: application/json');
+                echo json_encode($result);
+            } else {
+                http_response_code(405); // Method Not Allowed
+                echo json_encode(["result" => "fail", "message" => "Method not allowed"]);
+            }
+            break;
+
+      case 'updateUser':
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $data = json_decode(file_get_contents("php://input"), true);
+
+            if (!isset($data['accountId'])) {
+                echo json_encode(["result" => "fail", "message" => "accountId is required"]);
+                exit;
+            }
+
+            $user = new User();
+            $user->setFullName($data['fullName'] ?? '');
+            $user->setEmail($data['email'] ?? '');
+            $user->setPhoneNumber($data['phoneNumber'] ?? '');
+            $user->setAddress($data['address'] ?? '');
+
+            $result = $userRepo->updateUserProfile($user, (int)$data['accountId']);
 
             header('Content-Type: application/json');
             echo json_encode($result);
         } else {
-            http_response_code(405); // Method Not Allowed
+            http_response_code(405);
             echo json_encode(["result" => "fail", "message" => "Method not allowed"]);
         }
         break;
-
-        case 'updateUser':
+        
+        case 'updateUserPassword':
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $data = json_decode(file_get_contents("php://input"), true);
 
-        if (!isset($data['accountId'])) {
-            echo json_encode(["result" => "fail", "message" => "accountId is required"]);
+        if (!isset($data['accountId'], $data['currentPassword'], $data['newPassword'])) {
+            echo json_encode(["result" => "fail", "message" => "Missing required fields"]);
             exit;
         }
 
-        $user = new User();
-        $user->setFullName($data['fullName'] ?? '');
-        $user->setEmail($data['email'] ?? '');
-        $user->setPhoneNumber($data['phoneNumber'] ?? '');
-        $user->setAddress($data['address'] ?? '');
+        $currentPassword = $data['currentPassword'];
+        $newPassword = $data['newPassword'];
+        $accountId = (int)$data['accountId'];
 
-        $account = new Account();
-        $account->setPassword($data['password'] ?? '');
-
-        $result = $userRepo->updateUserProfile($user, $account, (int)$data['accountId']);
+        $result = $userRepo->updateUserPassword($currentPassword, $newPassword, $accountId);
 
         header('Content-Type: application/json');
         echo json_encode($result);
     } else {
-        http_response_code(405); // Method Not Allowed
+        http_response_code(405);
         echo json_encode(["result" => "fail", "message" => "Method not allowed"]);
     }
     break;
+
+
 
 
     default:

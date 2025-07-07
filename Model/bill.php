@@ -21,11 +21,11 @@ class Bill {
         $this->billId = $billId;
     }
 
-    public function getBillDesc(): ?int {
+    public function getBillDesc(): ?string {
         return $this->billDesc;
     }
 
-    public function setBillDesc(int $billDesc): void {
+    public function setBillDesc(string $billDesc): void {
         $this->billDesc = $billDesc;
     }
         public function getBillAmount(): ?int {

@@ -67,7 +67,7 @@ public function fetchAdmin(int $employeeId): array {
 public function fetchAllAdmin(): array {
      try {
             $sql = "SELECT E.employeeId AS EMPLOYEE_ID, E.username, E.email, E.fullName, E.role, E.status, E.managerId, M.fullName as MANAGER_NAME
-                             FROM EMPLOYEE E LEFT JOIN EMPLOYEE M ON E.managerId = M.employeeId";
+                    FROM EMPLOYEE E LEFT JOIN EMPLOYEE M ON E.managerId = M.employeeId";
             $stmt = oci_parse($this->connection, $sql);
             oci_execute($stmt);
 
@@ -117,8 +117,8 @@ public function registerAdmin(Employee $employee): array {
         // Step 3: Insert into EMPLOYEE table
         $employeeId = null;
         $sqlInsert = "INSERT INTO EMPLOYEE (username, email, password, fullName, role, status, managerId)
-                      VALUES (:username, :email, :password, :fullName, :role, :status, :managerId)
-                      RETURNING employeeId INTO :employeeId";
+                        VALUES (:username, :email, :password, :fullName, :role, :status, :managerId)
+                        RETURNING employeeId INTO :employeeId";
 
         $stmtInsert = oci_parse($this->connection, $sqlInsert);
         oci_bind_by_name($stmtInsert, ':username', $username);

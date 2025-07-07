@@ -48,5 +48,13 @@ switch ($action) {
                 echo json_encode($result);
             }
         break;
+        case 'fetchAllLoanTrans':
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            $result = $adminLoan->fetchAllLoanTrans();
+            header('Content-Type: application/json');
+            echo json_encode($result);
+        }
+        break;
+
     
 }
